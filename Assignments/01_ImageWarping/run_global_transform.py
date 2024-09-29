@@ -19,7 +19,38 @@ def apply_transform(image, scale, rotation, translation_x, translation_y, flip_h
     transformed_image = np.array(image)
 
     ### FILL: Apply Composition Transform 
-    # Note: for scale and rotation, implement them around the center of the image （围绕图像中心进行放缩和旋转）
+    # Note: for
+    # scale and rotation, implement them around the center of the image （围绕图像中心进行放缩和旋转）
+    H, W = image.shape[0:2]
+    rotation = rotation / 180 * np.pi
+    trans = np.array([
+        [1, 0, -W//2],
+        [0, 1, -H//2]
+    ])
+    cos = np.cos(rotation)
+    sin = np.sin(rotation)
+
+    scale_mat = np.array([
+        [scale, 0, 0],
+        [0, scale, 0]
+    ], dtype=np.float32)
+    mat = np.array([
+        [cos, -sin, 0],
+        [sin, cos, 0]
+    ])
+    trans_1 = trans.copy()
+    trans_1[..., -1] *= -1
+    trans = to_3x3(trans)
+    mat = to_3x3(mat)
+    scale_mat = to_3x3(scale_mat)
+    trans_1 = to_3x3(trans_1)
+    rota = trans_1 @ mat @ trans
+
+    scale_mat = trans_1 @ scale_mat @ trans
+    rota = rota[0:2, ...]
+    scale_mat = scale_mat[0:2, ...]
+    transformed_image = cv2.warpAffine(image, scale_mat, (W, H))
+    transformed_image = cv2.warpAffine(transformed_image, rota, (W, H))
 
     return transformed_image
 
